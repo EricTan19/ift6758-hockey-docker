@@ -1,0 +1,54 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+
+# --- Build artifacts ---
+build/
+dist/
+
+# --- Project-specific ignored dirs ---
+ift6758/ift6758.egg-info/
+ift6758/ift6758/__pycache__/
+
+# --- Logs ---
+flask.log
+*.log
+
+# --- Model files & artifacts ---
+artifacts/
+*.pkl
+*.pt
+*.pth
+*.joblib
+
+# --- WandB ---
+wandb/
+
+# --- Cache & transient ---
+.DS_Store
+*.cache
+.cache/
+*.tmp
+tmp/
+
+# --- IDEs ---
+.vscode/
+.idea/
+
+# --- Flask / Gunicorn runtime ---
+instance/
+*.pid
+
+# --- Jupyter Checkpoints ---
+.ipynb_checkpoints/
