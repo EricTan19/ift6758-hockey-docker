@@ -1,0 +1,3 @@
+WARNING:app:No default model found. Attempting automatic download...
+INFO:app:Successfully downloaded and loaded default model logreg_distance_model:latest
+INFO:app:{'distance': [5, 3, 5]}

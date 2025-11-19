@@ -1,0 +1,41 @@
+{
+  "os": "macOS-15.6.1-arm64-arm-64bit",
+  "python": "CPython 3.10.18",
+  "startedAt": "2025-11-19T02:03:25.622348Z",
+  "args": [
+    "--bind",
+    "0.0.0.0:5001",
+    "app:app"
+  ],
+  "program": "/Users/erictan/Desktop/UdeM/Fall 2025/IFT6758/ift6758-hockey-docker/.venv/bin/gunicorn",
+  "codePath": ".venv/bin/gunicorn",
+  "git": {
+    "remote": "https://github.com/EricTan19/ift6758-hockey-docker.git",
+    "commit": "9147395eb02120ba2b1a5a13f179cc64fe470647"
+  },
+  "email": "eric.tan@umontreal.ca",
+  "root": "/Users/erictan/Desktop/UdeM/Fall 2025/IFT6758/ift6758-hockey-docker/serving",
+  "host": "Erics-MacBook-Pro.local",
+  "executable": "/Users/erictan/Desktop/UdeM/Fall 2025/IFT6758/ift6758-hockey-docker/.venv/bin/python3.10",
+  "cpu_count": 14,
+  "cpu_count_logical": 14,
+  "disk": {
+    "/": {
+      "total": "994662584320",
+      "used": "121028071424"
+    }
+  },
+  "memory": {
+    "total": "25769803776"
+  },
+  "apple": {
+    "name": "Apple M4 Pro",
+    "ecpuCores": 4,
+    "pcpuCores": 10,
+    "gpuCores": 20,
+    "memoryGb": 24,
+    "swapTotalBytes": "6442450944",
+    "ramTotalBytes": "25769803776"
+  },
+  "writerId": "93brzimztrxi49qt55edd1ayc7r4ve8z"
+}

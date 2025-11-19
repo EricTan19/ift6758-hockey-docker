@@ -1,0 +1,53 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            i40ehiy1l5jx9s96gi9c0fb277dbsozj:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 20
+                    memoryGb: 24
+                    name: Apple M4 Pro
+                    pcpuCores: 10
+                    ramTotalBytes: "25769803776"
+                    swapTotalBytes: "7516192768"
+                args:
+                    - --bind
+                    - 0.0.0.0:5001
+                    - app:app
+                codePath: .venv/bin/gunicorn
+                cpu_count: 14
+                cpu_count_logical: 14
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "122157793280"
+                email: eric.tan@umontreal.ca
+                executable: /Users/erictan/Desktop/UdeM/Fall 2025/IFT6758/ift6758-hockey-docker/.venv/bin/python3.10
+                git:
+                    commit: 9147395eb02120ba2b1a5a13f179cc64fe470647
+                    remote: https://github.com/EricTan19/ift6758-hockey-docker.git
+                host: Erics-MacBook-Pro.local
+                memory:
+                    total: "25769803776"
+                os: macOS-15.6.1-arm64-arm-64bit
+                program: /Users/erictan/Desktop/UdeM/Fall 2025/IFT6758/ift6758-hockey-docker/.venv/bin/gunicorn
+                python: CPython 3.10.18
+                root: /Users/erictan/Desktop/UdeM/Fall 2025/IFT6758/ift6758-hockey-docker/serving
+                startedAt: "2025-11-19T02:44:27.380217Z"
+                writerId: i40ehiy1l5jx9s96gi9c0fb277dbsozj
+        m: []
+        python_version: 3.10.18
+        t:
+            "1":
+                - 5
+                - 53
+            "2":
+                - 5
+                - 53
+            "4": 3.10.18
+            "5": 0.23.0
+            "10":
+                - 20
+            "12": 0.23.0
+            "13": darwin-arm64
