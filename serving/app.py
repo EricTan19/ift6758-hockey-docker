@@ -37,7 +37,6 @@ def before_first_request():
     setup logging handler, etc.)
     """
     # TODO: setup basic logging configuration
-    # Setup logging
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
     default_name = "distance"
@@ -46,9 +45,7 @@ def before_first_request():
     local_path = Path(f"{default_artifact}_{default_version}.pkl")
 
     # TODO: any other initialization before the first request (e.g. load default model)
-    # Load default model: distance model
-    
-     # If local model exists → load it
+
     if local_path.exists():
         try:
             app.model = joblib.load(local_path)
@@ -59,29 +56,29 @@ def before_first_request():
         except Exception as e:
             app.logger.error(f"Local default model exists but failed to load: {e}")
 
-    # Otherwise download it using the SAME logic as /download_registry_model
-    app.logger.warning("No default model found. Attempting automatic download...")
+    
+    app.logger.warning("No default model found. Attempting download")
 
     try:
-        # Initialize wandb client
+        # initialize wandb client
         run = wandb.init(
             project="ift6758-shot-prediction",
             job_type="download-default",
             reinit=True
         )
 
+        # download model
         artifact = run.use_artifact(f"{default_artifact}:{default_version}", type="model")
         artifact_dir = artifact.download()
 
-        # Find .pkl inside artifact directory
         pkl_files = list(Path(artifact_dir).rglob("*.pkl"))
         if not pkl_files:
-            raise FileNotFoundError("Artifact contains no .pkl file")
+            raise FileNotFoundError("No .pkl file found in local repo")
 
-        # Save locally for future runs
+        # save locally for future runs
         joblib.dump(joblib.load(pkl_files[0]), local_path)
 
-        # Load into app
+        # load into app
         app.model = joblib.load(local_path)
         app.current_model_name = default_name
         app.current_model_version = default_version
@@ -108,7 +105,7 @@ def logs():
             response = {"logs": lines}
     except Exception as e:
         app.logger.error(f"Error reading log file: {e}")
-        abort(500, description="Could not read logs")
+        abort(403, description="Could not read logs")
 
     return jsonify(response)  # response must be json serializable!
 
@@ -130,7 +127,7 @@ def download_registry_model():
         }
     
     """
-    # Get POST json data
+    # get json data
     json = request.get_json()
     app.logger.info(json)
 
@@ -139,9 +136,9 @@ def download_registry_model():
     version = json.get("version", "latest")
 
     if workspace is None or model_name is None:
-        abort(400, description="workspace and model fields are required")
+        abort(403, description="workspace and model fields are required")
 
-    # Map Flask model name → WandB artifact name
+    # map flask model to wandb model
     artifact_map = {
         "distance": "logreg_distance_model",
         "angle_from_net": "logreg_angle_model",
@@ -149,7 +146,7 @@ def download_registry_model():
     }
 
     if model_name not in artifact_map:
-        abort(400, description=f"Invalid model name {model_name}")
+        abort(403, description=f"Invalid model name {model_name}")
         
     artifact_name = artifact_map[model_name]
 
@@ -186,6 +183,7 @@ def download_registry_model():
         if not pkl_files:
             raise FileNotFoundError("Artifact contains no .pkl file")
 
+        # download model localy
         joblib.dump(joblib.load(pkl_files[0]), local_path)
 
         # load newly downloaded model
@@ -203,13 +201,6 @@ def download_registry_model():
     # Tip: you can implement a "CometMLClient" similar to your App client to abstract all of this
     # logic and querying of the CometML servers away to keep it clean here
 
-    raise NotImplementedError("TODO: implement this endpoint")
-
-    response = None
-
-    app.logger.info(response)
-    return jsonify(response)  # response must be json serializable!
-
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -218,20 +209,20 @@ def predict():
 
     Returns predictions
     """
-    # Get POST json data
+    # get json data
     json = request.get_json()
     app.logger.info(json)
 
     if not hasattr(app, "model"):
-        abort(503, description="No model loaded. Call /download_registry_model first.")
+        abort(403, description="No model loaded. Call /download_registry_model first.")
 
 
     # TODO:
     try:
-        # Convert JSON → DataFrame
+        # convert json to dataframe
         X = pd.DataFrame.from_dict(json)
 
-        # Determine expected feature list
+        # map flask model to wandb model
         feature_map = {
             "distance": ["distance"],
             "angle_from_net": ["angle_from_net"],
@@ -240,14 +231,14 @@ def predict():
 
         required = feature_map[app.current_model_name]
 
-        # Validate missing columns
+        # check for missing column
         missing = [c for c in required if c not in X.columns]
         if missing:
-            abort(400, description=f"Missing required features: {missing}")
+            abort(403, description=f"Missing required features: {missing}")
 
         X = X[required]
 
-        # Predict probability (logistic regression)
+        # predict probability w/ logistic regression model
         preds = app.model.predict_proba(X)[:, 1].tolist()
 
         response = {
@@ -260,4 +251,4 @@ def predict():
 
     except Exception as e:
         app.logger.error(f"Prediction error: {e}")
-        abort(500, description=str(e))
+        abort(403, description=str(e))
