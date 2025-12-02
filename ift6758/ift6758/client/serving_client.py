@@ -3,12 +3,11 @@ import requests
 import pandas as pd
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
 class ServingClient:
-    def __init__(self, ip: str = "0.0.0.0", port: int = 5000, features=None):
+    def __init__(self, ip: str = "127.0.0.1", port: int = 5000, features=None):
         self.base_url = f"http://{ip}:{port}"
         logger.info(f"Initializing client; base URL: {self.base_url}")
 
@@ -16,39 +15,65 @@ class ServingClient:
             features = ["distance"]
         self.features = features
 
-        # any other potential initialization
-
     def predict(self, X: pd.DataFrame) -> pd.DataFrame:
-        """
-        Formats the inputs into an appropriate payload for a POST request, and queries the
-        prediction service. Retrieves the response from the server, and processes it back into a
-        dataframe that corresponds index-wise to the input dataframe.
-        
-        Args:
-            X (Dataframe): Input dataframe to submit to the prediction service.
-        """
+        if self.features is not None:
+            missing = [f for f in self.features if f not in X.columns]
+            if missing:
+                raise ValueError(f"Missing required features in X: {missing}")
+            X_payload = X[self.features].copy()
+        else:
+            X_payload = X.copy()
 
-        raise NotImplementedError("TODO: implement this function")
+        url = f"{self.base_url}/predict"
+        payload = X_payload.to_dict(orient="records")
+
+        try:
+            resp = requests.post(url, json=payload)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Error while calling prediction service: {e}")
+            raise
+
+        data = resp.json()  
+        preds = data["predictions"]
+
+        X_with_pred = X.copy()
+        X_with_pred["goal_prob"] = preds
+        return X_with_pred
 
     def logs(self) -> dict:
-        """Get server logs"""
+        url = f"{self.base_url}/logs"
+        try:
+            resp = requests.get(url)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Error while fetching logs: {e}")
+            raise
 
-        raise NotImplementedError("TODO: implement this function")
+        content_type = resp.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            try:
+                return resp.json()
+            except json.JSONDecodeError:
+                return {"logs": resp.text}
+        return {"logs": resp.text}
 
     def download_registry_model(self, workspace: str, model: str, version: str) -> dict:
-        """
-        Triggers a "model swap" in the service; the workspace, model, and model version are
-        specified and the service looks for this model in the model registry and tries to
-        download it. 
+        url = f"{self.base_url}/download_registry_model"
+        payload = {
+            "workspace": workspace,
+            "model": model,
+            "version": version,
+        }
 
-        See more here:
+        try:
+            resp = requests.post(url, json=payload)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Error while downloading registry model: {e}")
+            raise
 
-            https://www.comet.ml/docs/python-sdk/API/#apidownload_registry_model
-        
-        Args:
-            workspace (str): The Comet ML workspace
-            model (str): The model in the Comet ML registry to download
-            version (str): The model version to download
-        """
-
-        raise NotImplementedError("TODO: implement this function")
+        try:
+            return resp.json()
+        except json.JSONDecodeError:
+            return {"raw_response": resp.text}

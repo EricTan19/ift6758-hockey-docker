@@ -1,102 +1,71 @@
-import json
+import logging
+from typing import Callable, List, Dict
+
 import requests
 import pandas as pd
-import logging
+
+from ift6758.client.serving_client import ServingClient
 
 logger = logging.getLogger(__name__)
 
 
 class GameClient:
-    def __init__(self):
-        """
-        Initialize anything required for your game client.
-        You may want to store:
-        - last processed event index
-        - cached metadata
-        - base NHL API URL
-        """
-        logger.info("Initializing GameClient")
 
-        # TODO: store anything your client needs (API URL, state, etc.)
-        pass
+    def __init__(
+        self,
+        serving_client: ServingClient,
+        feature_fn: Callable[[List[Dict], Dict], pd.DataFrame],
+    ):
 
-    def ping_game(self, game_id: str, last_idx: int, features: list):
-        """
-        Ping a live NHL game and return ONLY new events.
+        self.serving_client = serving_client
+        self.feature_fn = feature_fn
+        self.seen_event_ids = set()
 
-        MUST return (as per assignment Part 4):
-            X_new            : DataFrame of NEW shot features ONLY
-            new_last_idx     : updated last processed event index
-            meta             : dict containing game metadata
-            events_df_new    : df of raw NEW events (before model prediction)
+    def fetch_game_data(self, game_id: str) -> Dict:
 
-        Args:
-            game_id (str): NHL game ID, e.g., '2021020329'
-            last_idx (int): index of last processed event
-            features (list): list of model feature names
-        
-        Returns:
-            tuple: (X_new, new_last_idx, meta, events_df_new)
-        """
+        url = f"https://api-web.nhle.com/v1/gamecenter/{game_id}/play-by-play"
+        logger.info(f"Fetching game data for game_id={game_id} from {url}")
 
-        raise NotImplementedError("TODO: implement ping_game()")
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        return resp.json()
 
-    def _fetch_game_data(self, game_id: str) -> dict:
-        """
-        Fetch the full game JSON from the NHL API.
-        You may call this inside ping_game().
+    def _extract_all_events(self, data: Dict) -> List[Dict]:
 
-        Args:
-            game_id (str): NHL game ID
-        
-        Returns:
-            dict: Raw NHL API JSON
-        """
+        return data.get("plays", [])
 
-        raise NotImplementedError("TODO: implement _fetch_game_data()")
+    def _get_event_id(self, event: Dict, fallback_idx: int) -> str:
 
-    def _extract_metadata(self, game_json: dict) -> dict:
-        """
-        Extract useful metadata:
-        - home team name
-        - away team name
-        - current period
-        - time remaining
-        - scores
-        
-        Args:
-            game_json (dict): Raw NHL API feed
-        
-        Returns:
-            dict: metadata dictionary
-        """
+        return str(event.get("eventId", fallback_idx))
 
-        raise NotImplementedError("TODO: implement _extract_metadata()")
+    def get_new_events(self, data: Dict) -> List[Dict]:
 
-    def _extract_new_events(self, game_json: dict, last_idx: int) -> pd.DataFrame:
-        """
-        Extract ONLY newly occurred events since last_idx.
+        all_events = self._extract_all_events(data)
+        new_events = []
 
-        Args:
-            game_json (dict): Raw NHL API feed
-            last_idx (int): Last processed event index
-        
-        Returns:
-            pd.DataFrame: DataFrame of newly seen event dicts
-        """
+        for idx, ev in enumerate(all_events):
+            ev_id = self._get_event_id(ev, idx)
+            if ev_id not in self.seen_event_ids:
+                new_events.append(ev)
 
-        raise NotImplementedError("TODO: implement _extract_new_events()")
+        logger.info(f"Found {len(new_events)} new events")
+        return new_events
 
-    def _plays_to_features(self, events_df: pd.DataFrame, features: list) -> pd.DataFrame:
-        """
-        Convert raw events into the feature DataFrame used by the model.
+    def step(self, game_id: str) -> pd.DataFrame:
 
-        Args:
-            events_df (DataFrame): Raw event data
-            features (list): List of expected model features
-        
-        Returns:
-            DataFrame: Feature dataframe aligned with model's expected columns
-        """
+        game_data = self.fetch_game_data(game_id)
+        new_events = self.get_new_events(game_data)
 
-        raise NotImplementedError("TODO: implement _plays_to_features()")
+        if not new_events:
+            logger.info("No new events to process.")
+            return pd.DataFrame()
+
+        X = self.feature_fn(new_events, game_data)
+
+        preds_df = self.serving_client.predict(X)
+
+        for idx, ev in enumerate(new_events):
+            ev_id = self._get_event_id(ev, idx)
+            self.seen_event_ids.add(ev_id)
+
+        return preds_df
