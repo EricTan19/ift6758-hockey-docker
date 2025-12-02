@@ -1,3 +1,8 @@
 WARNING:app:No default model found. Attempting automatic download...
 INFO:app:Successfully downloaded and loaded default model logreg_distance_model:latest
 INFO:app:{'distance': [5, 3, 5]}
+INFO:app:Loaded default model from local file.
+INFO:app:{'workspace': 'Workspace x', 'model': 'logreg_distance_model', 'version': 'Version 1'}
+INFO:werkzeug:127.0.0.1 - - [02/Dec/2025 09:45:55] "[31m[1mPOST /download_registry_model HTTP/1.1[0m" 403 -
+INFO:app:{'workspace': 'Workspace x', 'model': 'logreg_distance_model', 'version': 'Version 1'}
+INFO:werkzeug:127.0.0.1 - - [02/Dec/2025 09:46:22] "[31m[1mPOST /download_registry_model HTTP/1.1[0m" 403 -

@@ -12,7 +12,7 @@ class ServingClient:
         logger.info(f"Initializing client; base URL: {self.base_url}")
 
         if features is None:
-            features = ["distance"]
+            features = ["distance", "angle_from_net"]
         self.features = features
 
     def predict(self, X: pd.DataFrame) -> pd.DataFrame:

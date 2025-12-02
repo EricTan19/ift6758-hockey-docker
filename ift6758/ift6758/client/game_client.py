@@ -4,7 +4,8 @@ from typing import Callable, List, Dict
 import requests
 import pandas as pd
 
-from ift6758.client.serving_client import ServingClient
+from serving_client import ServingClient
+from features import build_features
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,10 @@ class GameClient:
     def __init__(
         self,
         serving_client: ServingClient,
-        feature_fn: Callable[[List[Dict], Dict], pd.DataFrame],
     ):
 
         self.serving_client = serving_client
-        self.feature_fn = feature_fn
+        self.feature_fn = build_features
         self.seen_event_ids = set()
 
     def fetch_game_data(self, game_id: str) -> Dict:
@@ -69,3 +69,26 @@ class GameClient:
             self.seen_event_ids.add(ev_id)
 
         return preds_df
+    
+    # Bonus feature
+    def get_live_game_ids(self) -> List[str]:
+        url = "https://api-web.nhle.com/v1/scoreboard/now"
+
+        try:
+            resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+
+            games = data.get("games", [])
+            live_ids = [
+                str(g.get("id"))
+                for g in games
+                if g.get("gameState") == "LIVE"   # Only in-progress games
+            ]
+
+            logger.info(f"Live games found: {live_ids}")
+            return live_ids
+
+        except Exception as e:
+            logger.error(f"Failed to fetch live games: {e}")
+            return []

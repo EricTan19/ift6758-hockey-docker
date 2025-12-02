@@ -20,10 +20,6 @@ import pandas as pd
 import joblib
 import wandb
 
-
-import ift6758
-
-
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 
 
@@ -165,8 +161,6 @@ def download_registry_model():
             return jsonify({"status": "success", "model": model_name, "version": version})
         except Exception as e:
             app.logger.error(f"Local model exists but could not be loaded: {e}")
-
-
     
     # TODO: if no, try downloading the model: if it succeeds, load that model and write to the log
     # about the model change. If it fails, write to the log about the failure and keep the 
@@ -252,3 +246,6 @@ def predict():
     except Exception as e:
         app.logger.error(f"Prediction error: {e}")
         abort(403, description=str(e))
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000, debug=False)
