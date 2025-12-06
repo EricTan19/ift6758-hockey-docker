@@ -167,7 +167,7 @@ def download_registry_model():
     # currently loaded model
     try:
 
-        run = wandb.init(project="ift6758-shot-prediction", job_type="download", reinit=True)
+        run = wandb.init(project="ift6758-shot-prediction", job_type="download", entity="IFT67582025-B2",reinit=True)
 
         artifact = run.use_artifact(f"{artifact_name}:{version}", type="model")
         artifact_dir = artifact.download()

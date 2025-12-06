@@ -6,25 +6,20 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile.serving
-#      args:
-#        ARG: <ARG>
-#    image: ift6758/serving:<TAG>
-#    ports:
-#      - <SERVING_PORT>:<SERVING_PORT>
-#    environment:
-#      DOCKER_ENV_VAR = ${LOCAL_ENV_VAR}
-###### Uncomment below when you're ready to add the final notebook container to your docker compose
-##  streamlit:
-##    build:
-##      context: ./
-##      dockerfile: ./Dockerfile.streamlit
-##      args:
-##        ARG: <ARG>
-##    image: ift6758/streamlit:<TAG>
-##    ports:
-##      - <STREAMLIT_PORT>:<STREAMLIT_PORT>
-##    environment:
-##      OTHER_DOCKER_ENV_VAR = ${OTHER_LOCAL_ENV_VAR}
+    image: ift6758/serving:latest
+    ports:
+      - "5000:5000"
+    environment:
+      WANDB_API_KEY: ${WANDB_API_KEY}
+  streamlit:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.streamlit
+    image: ift6758/streamlit:latest
+    ports:
+      - "8501:8501"
+    environment:
+      WANDB_API_KEY: ${WANDB_API_KEY}
       
 
      

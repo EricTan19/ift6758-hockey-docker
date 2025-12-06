@@ -8,7 +8,7 @@ from game_client import GameClient
 def init_state():
     if "serving_client" not in st.session_state:
         st.session_state.serving_client = ServingClient(
-            ip="127.0.0.1",
+            ip="serving",
             port=5000,
         )
 
@@ -214,9 +214,10 @@ with st.container():
         st.markdown(f"### {xg_home:.1f} ({score_home})")
         delta_home = score_home - xg_home
         st.metric(
-            label="",          
+            label="Difference",
             value="",
             delta=f"{delta_home:+.1f}",
+            label_visibility="hidden",
         )
 
     with col_away:
@@ -224,9 +225,10 @@ with st.container():
         st.markdown(f"### {xg_away:.1f} ({score_away})")
         delta_away = score_away - xg_away
         st.metric(
-            label="",
+            label="Difference",
             value="",
             delta=f"{delta_away:+.1f}",
+            label_visibility="hidden",
         )
 
 # -------------------------------------------------------------------
